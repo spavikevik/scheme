@@ -37,8 +37,8 @@ parseList = liftM List $ sepBy parseExpr spaces -- a list is an expression separ
 
 parseDottedList :: Parser LispVal
 parseDottedList = do
-    head <- endBy parseExpr spaces -- a dotted list starts with an expression followed by space(s)
-    tail <- char '.' >> spaces >> parseExpr -- every next element starts with a dot
+    head <- endBy parseExpr spaces -- the first elements are like an ordinary list
+    tail <- char '.' >> spaces >> parseExpr -- the last element starts with a dot
     return $ DottedList head tail
 
 parseQuoted :: Parser LispVal
