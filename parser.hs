@@ -1,3 +1,6 @@
+-- Parser code written using Parsec
+-- I will write comments for further reference.
+
 import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad
@@ -11,46 +14,46 @@ data LispVal = Atom String
 
 parseString :: Parser LispVal
 parseString = do
-    char '"'
-    x <- many (noneOf "\"")
-    char '"'
-    return $ String x
+    char '"' -- a string starts with an open quote
+    x <- many (noneOf "\"") -- any character that is not a quote is part of the string
+    char '"' -- a string ends with an end quote
+    return $ String x -- wrap the string into Parser monad
 
 parseAtom :: Parser LispVal
 parseAtom = do
-    first <- letter <|> symbol
-    rest <- many (letter <|> digit <|> symbol)
-    let atom = first:rest
+    first <- letter <|> symbol -- first character is either a letter or a symbol
+    rest <- many (letter <|> digit <|> symbol) -- it is then followed by many letters, digits, or symbols
+    let atom = first:rest -- an atom starts with a letter or symbol and followed by the rest of an atom (letters, digits or symbols)
     return $ case atom of
-        "#t" -> Bool True
-        "#f" -> Bool False
-        _    -> Atom atom
+        "#t" -> Bool True -- #t is True boolean
+        "#f" -> Bool False -- #f is False boolean
+        _    -> Atom atom -- everything else is an atom
 
 parseNumber :: Parser LispVal
-parseNumber = liftM (Number . read) $ many1 digit
+parseNumber = liftM (Number . read) $ many1 digit -- a number is one or more digits; the value is lifted out of the monad to be read as a Number
 
 parseList :: Parser LispVal
-parseList = liftM List $ sepBy parseExpr spaces
+parseList = liftM List $ sepBy parseExpr spaces -- a list is an expression separated by space(s)
 
 parseDottedList :: Parser LispVal
 parseDottedList = do
-    head <- endBy parseExpr spaces
-    tail <- char '.' >> spaces >> parseExpr
+    head <- endBy parseExpr spaces -- a dotted list starts with an expression followed by space(s)
+    tail <- char '.' >> spaces >> parseExpr -- every next element starts with a dot
     return $ DottedList head tail
 
 parseQuoted :: Parser LispVal
 parseQuoted = do
-    char '\''
+    char '\'' -- quoted expressions start with a single quote '
     x <- parseExpr
-    return $ List [Atom "quote", x]
+    return $ List [Atom "quote", x] -- it is an expression represented as data
 
 parseExpr :: Parser LispVal
-parseExpr = parseAtom
-          <|> parseString
-          <|> parseNumber
-          <|> parseQuoted
+parseExpr = parseAtom -- an expression is either an atom
+          <|> parseString -- or a string
+          <|> parseNumber -- or a number
+          <|> parseQuoted -- or a quoted expression
           <|> do char '('
-            x <- try parseList <|> parseDottedList
+            x <- try parseList <|> parseDottedList -- or a list
             char ')'
             return x
 
