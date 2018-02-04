@@ -30,7 +30,7 @@ parseAtom = do
         _    -> Atom atom -- everything else is an atom
 
 parseNumber :: Parser LispVal
-parseNumber = liftM (Number . read) $ many1 digit -- a number is one or more digits; the value is lifted out of the monad to be read as a Number
+parseNumber = liftM (Number . read) $ many1 digit -- a number is one or more digits; the function is lifted into the monad
 
 parseList :: Parser LispVal
 parseList = liftM List $ sepBy parseExpr spaces -- a list is an expression separated by space(s)
